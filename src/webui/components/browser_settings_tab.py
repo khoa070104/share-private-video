@@ -1,5 +1,4 @@
 import os
-from distutils.util import strtobool
 import gradio as gr
 import logging
 from gradio.components import Component
@@ -8,6 +7,21 @@ from src.webui.webui_manager import WebuiManager
 from src.utils import config
 
 logger = logging.getLogger(__name__)
+
+def strtobool(val):
+    """Convert a string representation of truth to true (1) or false (0).
+    
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    val = str(val).lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
 
 async def close_browser(webui_manager: WebuiManager):
     """
@@ -40,13 +54,14 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
                 label="Browser Binary Path",
                 lines=1,
                 interactive=True,
+                value=os.getenv("BROWSER_PATH", ""),
                 placeholder="e.g. '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome'"
             )
             browser_user_data_dir = gr.Textbox(
                 label="Browser User Data Dir",
                 lines=1,
                 interactive=True,
-                value="E:\\chrome-profile-youtube",
+                value=os.getenv("BROWSER_USER_DATA", ""),
                 placeholder="Leave it empty if you use your default user data",
             )
     with gr.Group():
@@ -65,13 +80,13 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
             )
             headless = gr.Checkbox(
                 label="Headless Mode",
-                value=False,
+                value=bool(strtobool(os.getenv("HEADLESS", "false"))),
                 info="Run browser without GUI",
                 interactive=True
             )
             disable_security = gr.Checkbox(
                 label="Disable Security",
-                value=False,
+                value=bool(strtobool(os.getenv("DISABLE_SECURITY", "false"))),
                 info="Disable browser security",
                 interactive=True
             )
@@ -80,13 +95,13 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
         with gr.Row():
             window_w = gr.Number(
                 label="Window Width",
-                value=1280,
+                value=int(os.getenv("WINDOW_WIDTH", "1280")),
                 info="Browser window width",
                 interactive=True
             )
             window_h = gr.Number(
                 label="Window Height",
-                value=1100,
+                value=int(os.getenv("WINDOW_HEIGHT", "1100")),
                 info="Browser window height",
                 interactive=True
             )
@@ -107,6 +122,7 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
         with gr.Row():
             save_recording_path = gr.Textbox(
                 label="Recording Path",
+                value=os.getenv("SAVE_RECORDING_PATH", ""),
                 placeholder="e.g. ./tmp/record_videos",
                 info="Path to save browser recordings",
                 interactive=True,
@@ -114,6 +130,7 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
 
             save_trace_path = gr.Textbox(
                 label="Trace Path",
+                value=os.getenv("SAVE_TRACE_PATH", ""),
                 placeholder="e.g. ./tmp/traces",
                 info="Path to save Agent traces",
                 interactive=True,
@@ -122,13 +139,13 @@ def create_browser_settings_tab(webui_manager: WebuiManager):
         with gr.Row():
             save_agent_history_path = gr.Textbox(
                 label="Agent History Save Path",
-                value="./tmp/agent_history",
+                value=os.getenv("SAVE_AGENT_HISTORY_PATH", "./tmp/agent_history"),
                 info="Specify the directory where agent history should be saved.",
                 interactive=True,
             )
             save_download_path = gr.Textbox(
                 label="Save Directory for browser downloads",
-                value="./tmp/downloads",
+                value=os.getenv("SAVE_DOWNLOAD_PATH", "./tmp/downloads"),
                 info="Specify the directory where downloaded files should be saved.",
                 interactive=True,
             )
